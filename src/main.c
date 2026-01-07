@@ -61,6 +61,11 @@ int main(int argc, char *argv[]) {
         continue;
         }
 
+        // handle cd command
+        if (handle_cd(command)) {
+          continue;
+        }
+
         char *argv_exec[64];
         char command_copy[BUFFER_SIZE];
 
