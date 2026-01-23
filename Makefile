@@ -1,26 +1,29 @@
-# Compiler and flags
+#Compiler and flags
 CC      = gcc
 CFLAGS  = -Wall -g
 
-# Target executable
+#Target executable
 TARGET  = mysh
 
-# Source and object files
+#Source and object files
 SRC     = src/main.c src/parser.c src/builtins.c src/path.c src/process.c
 OBJ     = $(SRC:.c=.o)
 
-# Default target
+#Default target
 all: $(TARGET)
 
-# Link step
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
+#Linker
+LDLIBS = -lreadline
 
-# Compile step
+#Link
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET) $(LDLIBS)
+
+#Compile
 src/%.o: src/%.c src/shell.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Cleanup
+#Cleanup
 clean:
 	rm -f $(OBJ)
 
