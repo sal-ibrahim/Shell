@@ -24,4 +24,7 @@ int find_in_path(const char *cmd, char *result, size_t size);
 void run_external(char *argv[]);
 char *builtin_generator(const char *text, int state);
 char **builtin_completion(const char *text, int start, int end);
+char *executable_generator(const char *text, int state);
+void run_pipeline(char *left[], char *right[]);
+
 #endif
