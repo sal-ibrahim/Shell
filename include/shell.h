@@ -1,30 +1,40 @@
-//for shared types and prototypes
-
 #ifndef SHELL_H
 #define SHELL_H
-#include <stddef.h>
 
-#define BUFFER_SIZE 1024
-#define MAX_ARGS 64
+/*
+ * 
+ * This file defines the REPL loop and coordinates 
+ * all shell subsystems (parser, executor, history, completion).
+ */
 
-//parsing
-int parse_command(char *command, char *argv[], int max_args);
+#include "config.h"
 
-//builtins
-int handle_echo(char *command);
-int handle_pwd(char *command);
-int handle_cd(char *command);
-int handle_type(char *command);
-int is_builtin(const char *cmd);
+/*
+ * Initialize the shell and all subsystems
+ * - Sets up readline completion
+ * - Loads command history from HISTFILE
+ * - Initializes builtin registry
+ * 
+ * Returns: SHELL_OK on success, SHELL_ERROR on failure
+ */
+int shell_init(void);
 
-//path
-int find_in_path(const char *cmd, char *result, size_t size);
+/*
+ * Run the main REPL loop
+ * - Displays prompt via readline
+ * - Parses and executes commands
+ * - Handles special commands (exit)
+ * - Manages history
+ * 
+ * Returns: Exit status code
+ */
+int shell_run(void);
 
-//
-void run_external(char *argv[]);
-char *builtin_generator(const char *text, int state);
-char **builtin_completion(const char *text, int start, int end);
-char *executable_generator(const char *text, int state);
-void run_pipeline(char *left[], char *right[]);
-int handle_history(char *command);
+/*
+ * Clean up shell resources and save state
+ * - Saves command history to HISTFILE
+ * - Frees allocated resources
+ */
+void shell_cleanup(void);
+
 #endif

@@ -1,16 +1,40 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+/**
+ * This file is the entry point that just initializes and runs the shell.
+ */
+
 #include "shell.h"
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <dirent.h>
-#include <errno.h>
-#include <unistd.h>
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    /* Initialize shell */
+    if (shell_init() != SHELL_OK) {
+        fprintf(stderr, "Failed to initialize shell\n");
+        return 1;
+    }
+
+    /* Run the REPL */
+    int exit_code = shell_run();
+
+    /* Cleanup */
+    shell_cleanup();
+
+    return exit_code;
+}
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+/*
 int main(int argc, char *argv[]) {
   //flush after every printf
   setbuf(stdout, NULL);
@@ -289,3 +313,5 @@ int handle_history(char *command) {
 
     return 1;
 }
+
+*/

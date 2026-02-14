@@ -1,112 +1,69 @@
-#include "shell.h"
-#include <stdio.h>
+/**
+ * This file handles the builtin commands using a function pointer
+ * table pattern.
+ * 
+ */
+
+#include "builtins/builtin.h"
 #include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/stat.h>
+#include <stdio.h>
+
+/* All builtin commands */
+static BuiltinCommand builtins[] = {
+    {"exit",    builtin_exit},
+    {"echo",    builtin_echo},
+    {"pwd",     builtin_pwd},
+    {"cd",      builtin_cd},
+    {"type",    builtin_type},
+    {"history", builtin_history},
+    {NULL,      NULL}
+};
 
 
-
-int handle_echo(char *command){
-  /*
-  (char *) -> int
-  Function checks whether the given command is an echo command. If so, prints the text following echo to standard output and returns 1. 
-  If the command is not an echo command, returns 0.
-  */
-
-  if (strncmp(command, "echo", 4) != 0 || (command[4] != ' ' && command[4] != '\0')){
-    return 0;
-  }
-
-  if (command[4] == ' '){
-    printf("%s\n", command + 5);
-  } else{
-    printf("\n");
-  }
-
-  return 1;
-}
-int handle_pwd(char *command){
-  /**/
-  if (strncmp(command, "pwd", 3) || (command[3] != ' ' && command[3] != '\0')){
-    return 0;
-  }
-
-  char buf[BUFFER_SIZE];
-  if (getcwd(buf, sizeof(buf)) != NULL){
-    printf("%s\n", buf);
-    return 1;
-  }
-
-  return 0;
-}
-int handle_cd(char *command){
-  if (strncmp(command, "cd", 2) != 0 || (command[2] != ' ' && command[2] != '\0')){
-    return 0;
-  }
-
-  //no argument
-  if (command[2] == '\0'){
-    return 1;
-  }
-
-  char *path = command + 3;
-
-  if (strcmp(path, "~") == 0) {
-    path = getenv("HOME");
-    if (!path) {
-        printf("cd: HOME not set\n");
-        return 1;
+int builtin_is_registered(const char *name) {
+    if (!name) {
+        return 0;
     }
-  }
-  
-  struct stat st;
 
-  //check if directory exists
-  if (stat(path, &st) != 0 || !S_ISDIR(st.st_mode)){
-    printf("cd: %s: No such file or directory\n", path);
-    return 1;
-  }
+    for (int i = 0; builtins[i].name != NULL; i++) {
+        if (strcmp(name, builtins[i].name) == 0) {
+            return 1;
+        }
+    }
 
-  //check permissiions and change directory
-  if (chdir(path) != 0){
-    printf("cd: %s: No such file or directory\n", path);
-  }
-
-  return 1;
-}
-int handle_type(char *command){
-  /*
-  (char *) -> int
-  Functions Checks whether the given command is a type command. If so, determines whether the argument is a shell builtin or an executable found in PATH, prints the result, and returns 1. 
-  Returns 0 if the command is not a type command.
-  */
-  
-  if (strncmp(command, "type", 4) != 0 || (command[4] != ' ' && command[4] != '\0')){
     return 0;
-  }
+}
 
-  //no argument after type
-  if (command[4] == '\0'){
-    return 1;
-  }
+int builtin_execute(const char *name, int argc, char **argv) {
+    if (!name) {
+        return SHELL_ERROR;
+    }
 
-  char *arg = command + 5;
+    // Find and execute the builtin
+    for (int i = 0; builtins[i].name != NULL; i++) {
+        if (strcmp(name, builtins[i].name) == 0) {
+            return builtins[i].handler(argc, argv);
+        }
+    }
 
-  //builtin check
-  if (is_builtin(arg)){
-    printf("%s is a shell builtin\n", arg);
-    return 1;
-  } 
+    // Not found just in case of error
+    fprintf(stderr, "%s: builtin not found\n", name);
+    return SHELL_ERROR;
+}
 
-  //path search
-  char full_path[BUFFER_SIZE];
-  if (find_in_path(arg, full_path, sizeof(full_path))){
-    printf("%s is %s\n", arg, full_path);
-    return 1;
-  }
-  
-  //not found
-  printf("%s: not found\n", arg);
-  return 1;
+const char **builtin_get_names(void) {
+    // Return pointer to static array of names (for completion)
+    static const char *names[64];
+    static int initialized = 0;
+
+    if (!initialized) {
+        int i;
+        for (i = 0; builtins[i].name != NULL && i < 63; i++) {
+            names[i] = builtins[i].name;
+        }
+        names[i] = NULL;
+        initialized = 1;
+    }
+
+    return names;
 }
