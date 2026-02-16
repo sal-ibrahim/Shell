@@ -11,7 +11,7 @@
 
 
 /**
- * This function Searches each directory in the PATH environment variable for an
+ * This function searches each directory in the PATH environment variable for an
  * executable file with the given name.
  * 
  * Parameters:
