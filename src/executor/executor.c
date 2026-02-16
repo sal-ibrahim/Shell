@@ -1,8 +1,6 @@
 /*
- * executor.c - Command execution dispatcher
  * 
- * This module orchestrates command execution by dispatching to the
- * appropriate handler (builtin, external, or pipeline).
+ * This file handles command execution etiher builtin, external, or pipeline
  */
 
 #include "executor/executor.h"
