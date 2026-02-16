@@ -1,35 +1,78 @@
-#Compiler and flags
-CC      = gcc
-CFLAGS  = -Wall -g
+# Makefile for modular Unix shell
+#
+# This Makefile builds the shell from modular source files organized
+# by responsibility.
 
-#Target executable
-TARGET  = mysh
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L -I./include -g
+LDFLAGS = -lreadline
 
-#Source and object files
-SRC     = src/main.c src/parser.c src/builtins.c src/path.c src/process.c
-OBJ     = $(SRC:.c=.o)
+# Target executable
+TARGET = myshell
 
-#Default target
+# Source directories
+SRC_DIRS = src \
+           src/builtins \
+           src/executor \
+           src/parser \
+           src/path \
+           src/completion
+
+# Find all .c files in source directories
+SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+
+# Generate object file names
+OBJECTS = $(SOURCES:.c=.o)
+
+# Default target
 all: $(TARGET)
 
-#Linker
-LDLIBS = -lreadline
+# Link the executable
+$(TARGET): $(OBJECTS)
+	@echo "Linking $(TARGET)..."
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
+	@echo "Build complete: $(TARGET)"
 
-#Link
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET) $(LDLIBS)
-
-#Compile
-src/%.o: src/%.c src/shell.h
+# Compile source files to object files
+%.o: %.c
+	@echo "Compiling $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-#Cleanup
+# Clean build artifacts
 clean:
-	rm -f $(OBJ)
+	@echo "Cleaning build artifacts..."
+	rm -f $(OBJECTS) $(TARGET) $(OBJECTS:.o=.d)
+	@echo "Clean complete"
 
-fclean: clean
-	rm -f $(TARGET)
 
-re: fclean all
+# Rebuild everything
+rebuild: clean all
 
-.PHONY: all clean fclean re
+# Show build information
+info:
+	@echo "Sources: $(SOURCES)"
+	@echo "Objects: $(OBJECTS)"
+	@echo "Compiler: $(CC) $(CFLAGS)"
+	@echo "Linker flags: $(LDFLAGS)"
+
+# Install (optional - copies to /usr/local/bin)
+install: $(TARGET)
+	@echo "Installing $(TARGET) to /usr/local/bin..."
+	sudo cp $(TARGET) /usr/local/bin/
+	@echo "Installation complete"
+
+# Run the shell
+run: $(TARGET)
+	./$(TARGET)
+
+# Phony targets (not actual files)
+.PHONY: all clean rebuild info install run
+
+# Dependency tracking (automatic header dependencies)
+# This tells make to rebuild .o files if headers change
+DEPFLAGS = -MMD -MP
+CFLAGS += $(DEPFLAGS)
+
+# Include generated dependency files
+-include $(OBJECTS:.o=.d)
